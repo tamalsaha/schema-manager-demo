@@ -110,7 +110,7 @@ func run() error {
 			"app": "busybox",
 		})
 		if createOp {
-			core_util.EnsureOwnerReference(&p.ObjectMeta, nil /*SET to actuak OWNER*/)
+			core_util.EnsureOwnerReference(&p.ObjectMeta, nil /*SET to actual OWNER*/)
 		}
 
 		// NEVER DO THIS
