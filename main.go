@@ -13,6 +13,7 @@ import (
 	"k8s.io/klog/v2/klogr"
 	clientutil "kmodules.xyz/client-go/client"
 	core_util "kmodules.xyz/client-go/core/v1"
+	meta_util "kmodules.xyz/client-go/meta"
 	kubedbscheme "kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 	schemav1alpha1 "kubedb.dev/schema-manager/apis/schema/v1alpha1"
 	kubevaultscheme "kubevault.dev/apimachinery/client/clientset/versioned/scheme"
@@ -105,9 +106,9 @@ func run() error {
 		},
 	}, func(obj client.Object, createOp bool) client.Object {
 		p := obj.(*core.Pod)
-		p.Labels = map[string]string{
+		p.Labels = meta_util.OverwriteKeys(p.Labels, map[string]string{
 			"app": "busybox",
-		}
+		})
 
 		// NEVER DO THIS
 		//p.Spec = core.PodSpec{
