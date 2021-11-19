@@ -7,6 +7,7 @@ require (
 	k8s.io/apimachinery v0.21.1
 	k8s.io/client-go v0.21.1
 	k8s.io/klog/v2 v2.8.0
+	kmodules.xyz/client-go v0.0.0-20211119042047-bbc619ee4c49
 	kubedb.dev/apimachinery v0.23.0
 	kubedb.dev/schema-manager v0.0.0-20211110061305-8b9c033d338c
 	kubevault.dev/apimachinery v0.5.1
@@ -72,7 +73,6 @@ require (
 	k8s.io/component-base v0.21.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7 // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
-	kmodules.xyz/client-go v0.0.0-20211110065417-091bd089a92d // indirect
 	kmodules.xyz/custom-resources v0.0.0-20211007080833-72bd9e8cae6e // indirect
 	kmodules.xyz/monitoring-agent-api v0.0.0-20210928135619-38ca075a2dbd // indirect
 	kmodules.xyz/objectstore-api v0.0.0-20210928135706-fdf68f88ea6e // indirect

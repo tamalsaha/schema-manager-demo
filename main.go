@@ -4,19 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"k8s.io/apimachinery/pkg/api/resource"
 
-	//"time"
-
-	// 	"github.com/nats-io/nats.go"
-	// 	"github.com/tamalsaha/nats-hop-demo/shared"
-	// 	"github.com/tamalsaha/nats-hop-demo/transport"
 	core "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-
-	//"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
+	clientutil "kmodules.xyz/client-go/client"
+	core_util "kmodules.xyz/client-go/core/v1"
 	kubedbscheme "kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 	schemav1alpha1 "kubedb.dev/schema-manager/apis/schema/v1alpha1"
 	kubevaultscheme "kubevault.dev/apimachinery/client/clientset/versioned/scheme"
@@ -42,23 +38,8 @@ func run() error {
 	_ = kubevaultscheme.AddToScheme(scheme)
 	_ = schemav1alpha1.AddToScheme(scheme)
 
-	// 	nc, err := nats.Connect(shared.NATS_URL)
-	// 	if err != nil {
-	// 		klog.Fatalln(err)
-	// 	}
-	// 	defer nc.Close()
-
 	ctrl.SetLogger(klogr.New())
 	cfg := ctrl.GetConfigOrDie()
-
-	// 	tr, err := cfg.TransportConfig()
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	cfg.Transport, err = transport.New(tr, nc, "k8s", 10000*time.Second)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
 
 	mapper, err := apiutil.NewDynamicRESTMapper(cfg)
 	if err != nil {
@@ -86,14 +67,74 @@ func run() error {
 		fmt.Println(n.Name)
 	}
 
-	var mysqls v1alpha2.MySQLList
-	err = c.List(context.TODO(), &mysqls)
+	// Example:
+	//var mysqls v1alpha2.MySQLList
+	//err = c.List(context.TODO(), &mysqls)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//for _, n := range mysqls.Items {
+	//	fmt.Println(n.Name)
+	//}
+
+	/*
+		apiVersion: v1
+		kind: Pod
+		metadata:
+		  name: busybox
+		  labels:
+		    app: busybox
+		spec:
+		  containers:
+		  - image: ubuntu:20.04
+		    command:
+		      - sleep
+		      - "3600"
+		    imagePullPolicy: IfNotPresent
+		    name: busybox
+		    resources:
+		      limits:
+		        cpu: 250m
+		        memory: 256Mi
+		  restartPolicy: Always
+	*/
+	finalObj, vt, err := clientutil.CreateOrPatch(c, &core.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "default",
+			Name:      "busybox",
+		},
+	}, func(obj client.Object, createOp bool) client.Object {
+		p := obj.(*core.Pod)
+		p.Labels = map[string]string{
+			"app": "busybox",
+		}
+
+		// NEVER DO THIS
+		//p.Spec = core.PodSpec{
+		//
+		//}
+
+		p.Spec.Containers = core_util.UpsertContainer(p.Spec.Containers, core.Container{
+			Name:    "busybox",
+			Image:   "ubuntu:20.04",
+			Command: []string{"sleep", "3600"},
+			Resources: core.ResourceRequirements{
+				Limits: core.ResourceList{
+					core.ResourceCPU:    resource.MustParse("250m"),
+					core.ResourceMemory: resource.MustParse("256Mi"),
+				},
+			},
+			ImagePullPolicy: core.PullIfNotPresent,
+		})
+		p.Spec.RestartPolicy = core.RestartPolicyAlways
+
+		return p
+	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-	for _, n := range mysqls.Items {
-		fmt.Println(n.Name)
-	}
+	fmt.Println("op = ", vt)
+	fmt.Printf("obj = %+v", finalObj)
 
 	return nil
 }
