@@ -109,6 +109,9 @@ func run() error {
 		p.Labels = meta_util.OverwriteKeys(p.Labels, map[string]string{
 			"app": "busybox",
 		})
+		if createOp {
+			core_util.EnsureOwnerReference(&p.ObjectMeta, nil /*SET to actuak OWNER*/)
+		}
 
 		// NEVER DO THIS
 		//p.Spec = core.PodSpec{
